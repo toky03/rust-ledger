@@ -1,9 +1,6 @@
-
 use super::definition::AccountDefinition;
 
-struct Ledger {
-
-}
+struct Ledger {}
 
 // struct LedgerAccount {
 //     name: string,

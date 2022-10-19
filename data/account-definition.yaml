@@ -1,0 +1,14 @@
+balance:
+  active:
+    working-capital:
+      - name: Kasse
+        start: 1000
+    fixed-assets:
+  passive:
+    equity:
+      - name: Eigenkapital
+        start: 10000
+    debt-capital:
+income:
+  revenue:
+  expense:

@@ -1,3 +1,7 @@
+use crate::model::definition::LedgerDefinition;
+
+pub fn read_default_ledger() -> Result<LedgerDefinition, serde_yaml::Error> {
+    let definition = r#"
 balance:
   active:
     working-capital:
@@ -19,4 +23,8 @@ income:
       start: 3000
   expense:
     - name: Aufwand
-      start: 3001
+      start: 3001"#;
+
+    let ledger_definition: LedgerDefinition = serde_yaml::from_str(definition)?;
+    Ok(ledger_definition)
+}

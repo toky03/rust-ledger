@@ -1,7 +1,7 @@
-use std::collections::HashMap;
 use super::definition::LedgerDefinition;
 use crate::model::amount::Amount;
 use crate::model::definition::Account;
+use std::collections::HashMap;
 
 #[derive(Clone, PartialEq, Debug)]
 enum BalanceType {
@@ -50,7 +50,9 @@ impl LedgerAccount {
     }
 }
 
-pub fn from_ledger_definition(ledger_definition: &LedgerDefinition) -> HashMap<String, LedgerAccount> {
+pub fn from_ledger_definition(
+    ledger_definition: &LedgerDefinition,
+) -> HashMap<String, LedgerAccount> {
     let equities = read_accounts(
         ledger_definition,
         LedgerDefinition::get_equities,
@@ -89,9 +91,12 @@ pub fn from_ledger_definition(ledger_definition: &LedgerDefinition) -> HashMap<S
         &expenses[..],
         &revenue[..],
     ]
-        .concat();
+    .concat();
 
-    ledger.into_iter().map(|acc| (acc.name.clone(), acc.clone())).collect()
+    ledger
+        .into_iter()
+        .map(|acc| (acc.name.clone(), acc.clone()))
+        .collect()
 }
 
 fn read_accounts(
@@ -107,13 +112,13 @@ fn read_accounts(
 
 #[cfg(test)]
 mod test_model_control {
-    use std::collections::HashMap;
     use crate::model::control::{
         from_ledger_definition, AccountType, ActiveType, BalanceType, IncomeType, LedgerAccount,
         PassiveType,
     };
     use crate::model::definition::LedgerDefinition;
     use crate::model::mock::read_default_ledger;
+    use std::collections::HashMap;
 
     #[test]
     fn test_from_ledger_definition() -> Result<(), serde_yaml::Error> {
@@ -158,7 +163,9 @@ mod test_model_control {
         name: &str,
         account_type: AccountType,
     ) {
-        let account = ledger_accounts.get(name).expect(format!("cannot find account with name {name}").as_str());
+        let account = ledger_accounts
+            .get(name)
+            .expect(format!("cannot find account with name {name}").as_str());
         assert_eq!(account.account_type, account_type);
     }
 }

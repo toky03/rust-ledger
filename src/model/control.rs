@@ -1,4 +1,4 @@
-use super::ledger::{Account, LedgerDefinition};
+use super::ledger::{Account, AccountsReader};
 use crate::model::ledger::Amount;
 use std::collections::HashMap;
 
@@ -50,36 +50,31 @@ impl LedgerAccount {
 }
 
 pub fn from_ledger_definition(
-    ledger_definition: &LedgerDefinition,
+    ledger_definition: &dyn AccountsReader,
 ) -> HashMap<String, LedgerAccount> {
+    ledger_definition.get_equities();
     let equities = read_accounts(
-        ledger_definition,
-        LedgerDefinition::get_equities,
+        ledger_definition.get_equities(),
         AccountType::Balance(BalanceType::Passive(PassiveType::Equity)),
     );
     let debt_capital = read_accounts(
-        ledger_definition,
-        LedgerDefinition::get_debt_capital,
+        ledger_definition.get_debt_capital(),
         AccountType::Balance(BalanceType::Passive(PassiveType::DebtCapital)),
     );
     let fixed_assets = read_accounts(
-        ledger_definition,
-        LedgerDefinition::get_fixed_assets,
+        ledger_definition.get_fixed_assets(),
         AccountType::Balance(BalanceType::Active(ActiveType::FixedAssets)),
     );
     let working_capital = read_accounts(
-        ledger_definition,
-        LedgerDefinition::get_working_capital,
+        ledger_definition.get_working_capital(),
         AccountType::Balance(BalanceType::Active(ActiveType::WorkingCapital)),
     );
     let expenses = read_accounts(
-        ledger_definition,
-        LedgerDefinition::get_expenses,
+        ledger_definition.get_expenses(),
         AccountType::Income(IncomeType::Expense),
     );
     let revenue = read_accounts(
-        ledger_definition,
-        LedgerDefinition::get_revenue,
+        ledger_definition.get_revenue(),
         AccountType::Income(IncomeType::Revenue),
     );
     let ledger = [
@@ -98,12 +93,8 @@ pub fn from_ledger_definition(
         .collect()
 }
 
-fn read_accounts(
-    ledger_definition: &LedgerDefinition,
-    function: fn(definition: &LedgerDefinition) -> Vec<&Account>,
-    account_type: AccountType,
-) -> Vec<LedgerAccount> {
-    function(ledger_definition)
+fn read_accounts(raw_accounts: Vec<Account>, account_type: AccountType) -> Vec<LedgerAccount> {
+    raw_accounts
         .iter()
         .map(|acc| LedgerAccount::from(acc, &account_type))
         .collect()
@@ -111,21 +102,46 @@ fn read_accounts(
 
 #[cfg(test)]
 mod tests {
-    use super::super::ledger::LedgerDefinition;
+
     use super::{
         from_ledger_definition, AccountType, ActiveType, BalanceType, IncomeType, LedgerAccount,
         PassiveType,
     };
 
+    use super::super::ledger::{Account, MockLedgerDefinition};
+
     use std::collections::HashMap;
 
     #[test]
     fn test_from_ledger_definition() -> Result<(), serde_yaml::Error> {
-        let mock_ledger_definition = MockLedgerDefitition::new();
+        let mut mock_ledger_definition = MockLedgerDefinition::new();
+        let kasse = Account::new("Kasse", 10);
+        let maschine = Account::new("Maschinen", 1000);
+        let eigenkapital = Account::new("Eigenkapital", 1000);
+        let fremdkapital = Account::new("Fremdkapital", 1000);
+        let ertrag = Account::new("Ertrag", 1000);
+        let aufwand = Account::new("Aufwand", 1000);
+
         mock_ledger_definition
             .expect_get_equities()
-            .times(1)
-            .resurn_const(());
+            .return_const(vec![eigenkapital]);
+
+        mock_ledger_definition
+            .expect_get_fixed_assets()
+            .return_const(vec![maschine]);
+        mock_ledger_definition
+            .expect_get_working_capital()
+            .return_const(vec![kasse]);
+        mock_ledger_definition
+            .expect_get_revenue()
+            .return_const(vec![ertrag]);
+        mock_ledger_definition
+            .expect_get_expenses()
+            .return_const(vec![aufwand]);
+        mock_ledger_definition
+            .expect_get_debt_capital()
+            .return_const(vec![fremdkapital]);
+
         let ledger_accounts = from_ledger_definition(&mock_ledger_definition);
         assert_eq!(ledger_accounts.len(), 6);
         verify_account(

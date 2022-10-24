@@ -1,27 +1,27 @@
 use crate::model::ledger::amount::Amount;
-use serde::{Deserialize, Serialize};
+#[cfg(test)]
 use mockall::automock;
+use serde::{Deserialize, Serialize};
 
-#[derive(Serialize, Deserialize, PartialEq, Debug)]
-#[automock]
+#[derive(Serialize, Deserialize, PartialEq, Debug, Clone)]
 pub struct LedgerDefinition {
     balance: Balance,
     income: Income,
 }
 
-#[derive(Serialize, Deserialize, PartialEq, Debug)]
+#[derive(Serialize, Deserialize, PartialEq, Debug, Clone)]
 struct Income {
     revenue: Vec<Account>,
     expense: Vec<Account>,
 }
 
-#[derive(Serialize, Deserialize, PartialEq, Debug)]
+#[derive(Serialize, Deserialize, PartialEq, Debug, Clone)]
 struct Balance {
     active: ActiveBalance,
     passive: PassiveBalance,
 }
 
-#[derive(Serialize, Deserialize, PartialEq, Debug)]
+#[derive(Serialize, Deserialize, PartialEq, Debug, Clone)]
 struct ActiveBalance {
     #[serde(rename = "working-capital")]
     working_capital: Vec<Account>,
@@ -29,7 +29,7 @@ struct ActiveBalance {
     fixed_assets: Vec<Account>,
 }
 
-#[derive(Serialize, Deserialize, PartialEq, Debug)]
+#[derive(Serialize, Deserialize, PartialEq, Debug, Clone)]
 struct PassiveBalance {
     equity: Vec<Account>,
     #[serde(rename = "debt-capital")]
@@ -42,45 +42,70 @@ pub struct Account {
     pub start: Amount,
 }
 
-impl LedgerDefinition {
-    pub fn get_equities(&self) -> Vec<&Account> {
-        self.balance.passive.equity.iter().map(|acc| acc).collect()
+#[cfg(test)]
+impl Account {
+    pub fn new(name: &str, start: u128) -> Self {
+        Account {
+            name: String::from(name),
+            start: Amount::new(start, 0),
+        }
     }
-    pub fn get_debt_capital(&self) -> Vec<&Account> {
+}
+
+pub trait AccountsReader {
+    fn get_equities(&self) -> Vec<Account>;
+    fn get_debt_capital(&self) -> Vec<Account>;
+    fn get_fixed_assets(&self) -> Vec<Account>;
+    fn get_working_capital(&self) -> Vec<Account>;
+    fn get_revenue(&self) -> Vec<Account>;
+    fn get_expenses(&self) -> Vec<Account>;
+}
+
+#[cfg_attr(test, automock)]
+impl AccountsReader for LedgerDefinition {
+    fn get_equities<'a>(&'a self) -> Vec<Account> {
+        self.balance
+            .passive
+            .equity
+            .iter()
+            .map(|e| e.clone())
+            .collect()
+    }
+    fn get_debt_capital<'a>(&'a self) -> Vec<Account> {
         self.balance
             .passive
             .debt_capital
             .iter()
-            .map(|acc| acc)
+            .map(|e| e.clone())
             .collect()
     }
-    pub fn get_fixed_assets(&self) -> Vec<&Account> {
+    fn get_fixed_assets<'a>(&'a self) -> Vec<Account> {
         self.balance
             .active
             .fixed_assets
             .iter()
-            .map(|acc| acc)
+            .map(|e| e.clone())
             .collect()
     }
-    pub fn get_working_capital(&self) -> Vec<&Account> {
+    fn get_working_capital<'a>(&'a self) -> Vec<Account> {
         self.balance
             .active
             .working_capital
             .iter()
-            .map(|acc| acc)
+            .map(|e| e.clone())
             .collect()
     }
-    pub fn get_revenue(&self) -> Vec<&Account> {
-        self.income.revenue.iter().map(|acc| acc).collect()
+    fn get_revenue<'a>(&'a self) -> Vec<Account> {
+        self.income.revenue.iter().map(|e| e.clone()).collect()
     }
-    pub fn get_expenses(&self) -> Vec<&Account> {
-        self.income.expense.iter().map(|acc| acc).collect()
+    fn get_expenses<'a>(&'a self) -> Vec<Account> {
+        self.income.expense.iter().map(|e| e.clone()).collect()
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use super::{Account, Amount, LedgerDefinition};
+    use super::{Account, AccountsReader, Amount, LedgerDefinition};
     use crate::model::ledger::definition::{ActiveBalance, Balance, Income, PassiveBalance};
 
     #[test]
@@ -111,48 +136,18 @@ income:
 
         let ledger_definition: LedgerDefinition = serde_yaml::from_str(definition)?;
 
-        verify_account(
-            &ledger_definition,
-            LedgerDefinition::get_expenses,
-            "Aufwand",
-            3001,
-        );
-        verify_account(
-            &ledger_definition,
-            LedgerDefinition::get_revenue,
-            "Ertrag",
-            3000,
-        );
-        verify_account(
-            &ledger_definition,
-            LedgerDefinition::get_equities,
-            "Eigenkapital",
-            2000,
-        );
-        verify_account(
-            &ledger_definition,
-            LedgerDefinition::get_working_capital,
-            "Kasse",
-            1000,
-        );
-        verify_account(
-            &ledger_definition,
-            LedgerDefinition::get_fixed_assets,
-            "Maschinen",
-            1001,
-        );
-        verify_account(
-            &ledger_definition,
-            LedgerDefinition::get_debt_capital,
-            "Fremdkapital",
-            2001,
-        );
+        verify_account(ledger_definition.get_expenses(), "Aufwand", 3001);
+        verify_account(ledger_definition.get_revenue(), "Ertrag", 3000);
+        verify_account(ledger_definition.get_equities(), "Eigenkapital", 2000);
+        verify_account(ledger_definition.get_working_capital(), "Kasse", 1000);
+        verify_account(ledger_definition.get_fixed_assets(), "Maschinen", 1001);
+        verify_account(ledger_definition.get_debt_capital(), "Fremdkapital", 2001);
         Ok(())
     }
 
     #[test]
     fn test_serialization_with_income() -> Result<(), serde_yaml::Error> {
-        let expectedStr = r#"balance:
+        let expected_str = r#"balance:
   active:
     working-capital: []
     fixed-assets: []
@@ -181,18 +176,13 @@ income:
         };
 
         let serialized = serde_yaml::to_string(&definition)?;
-        assert_eq!(serialized, expectedStr);
+        assert_eq!(serialized, expected_str);
         Ok(())
     }
 
-    fn verify_account(
-        ledger: &LedgerDefinition,
-        function: fn(definition: &LedgerDefinition) -> Vec<&Account>,
-        name: &str,
-        start: u128,
-    ) -> () {
-        assert_eq!(function(&ledger).len(), 1);
-        let account = *function(&ledger).first().expect("first account not found");
+    fn verify_account(accounts: Vec<Account>, name: &str, start: u128) -> () {
+        assert_eq!(accounts.len(), 1);
+        let account = accounts.first().expect("first account not found");
         assert_eq!(
             account,
             &Account {

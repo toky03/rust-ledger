@@ -50,15 +50,15 @@ transactions:
     amount: 100.0
     description: Abschreibungen von Maschinen"#;
 
-        let ledgerTransactions: TransactionLedger = serde_yaml::from_str(definition)?;
+        let ledger_transactions: TransactionLedger = serde_yaml::from_str(definition)?;
 
-        assert_eq!(ledgerTransactions.transactions.len(), 1);
+        assert_eq!(ledger_transactions.transactions.len(), 1);
         Ok(())
     }
 
     #[test]
     fn test_serialization() -> Result<(), serde_yaml::Error> {
-        let expectedStr = r#"transactions:
+        let expected_str = r#"transactions:
 - description: Kauf von Maschinen aus Kasse
   amount: 20.22
   deb: Kasse
@@ -66,7 +66,7 @@ transactions:
   date: 2022-01-10
 "#;
 
-        let ledgerTransactions = TransactionLedger {
+        let ledger_transactions = TransactionLedger {
             transactions: vec![Transaction::new(
                 String::from("Kauf von Maschinen aus Kasse"),
                 Amount::new(20, 22),
@@ -76,9 +76,9 @@ transactions:
             )],
         };
 
-        let serialized = serde_yaml::to_string(&ledgerTransactions)?;
+        let serialized = serde_yaml::to_string(&ledger_transactions)?;
 
-        assert_eq!(serialized, expectedStr);
+        assert_eq!(serialized, expected_str);
         Ok(())
     }
 }

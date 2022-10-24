@@ -64,7 +64,15 @@ impl<'de> Deserialize<'de> for Amount {
 }
 
 #[cfg(test)]
-mod test_deserialize_amount {
+mod tests {
+
+    #[test]
+    fn test_wrong_input() -> Result<(), serde_yaml::Error> {
+        let amount: Result<super::Amount, serde_yaml::Error> = serde_yaml::from_str(r#"10,0"#);
+        assert!(amount.is_err());
+        Ok(())
+    }
+
     #[test]
     fn test_amount_witout_decimal_digits() -> Result<(), serde_yaml::Error> {
         let amount: super::Amount = serde_yaml::from_str(r#"10"#)?;

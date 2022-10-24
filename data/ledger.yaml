@@ -1,8 +1,31 @@
 name: "Buchhaltung 2022"
+definition:
+  balance:
+    active:
+      working-capital:
+        - name: Kasse
+          start: 1000
+      fixed-assets:
+        - name: Maschinen
+          start: 1001
+    passive:
+      equity:
+        - name: Eigenkapital
+          start: 2000
+      debt-capital:
+        - name: Fremdkapital
+          start: 2001
+  income:
+    revenue:
+      - name: Ertrag
+        start: 3000
+    expense:
+      - name: Aufwand
+        start: 3001
 transactions:
-  - date:
-    cred:
-    deb:
-    amount:
-    description:
+  - date: 2022-01-01
+    cred: Ertrag
+    deb: Aufwand
+    amount: 100.02
+    description: unnoetige Buchung
 

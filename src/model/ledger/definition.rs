@@ -1,7 +1,9 @@
-use crate::model::amount::Amount;
+use crate::model::ledger::amount::Amount;
 use serde::{Deserialize, Serialize};
+use mockall::automock;
 
 #[derive(Serialize, Deserialize, PartialEq, Debug)]
+#[automock]
 pub struct LedgerDefinition {
     balance: Balance,
     income: Income,
@@ -77,14 +79,37 @@ impl LedgerDefinition {
 }
 
 #[cfg(test)]
-mod test_deserialize_definition {
-    use crate::model::amount::Amount;
-    use crate::model::definition::{Account, LedgerDefinition};
-    use crate::model::mock::read_default_ledger;
+mod tests {
+    use super::{Account, Amount, LedgerDefinition};
+    use crate::model::ledger::definition::{ActiveBalance, Balance, Income, PassiveBalance};
 
     #[test]
     fn test_with_getter() -> Result<(), serde_yaml::Error> {
-        let ledger_definition = read_default_ledger()?;
+        let definition = r#"
+balance:
+  active:
+    working-capital:
+      - name: Kasse
+        start: 1000
+    fixed-assets:
+      - name: Maschinen
+        start: 1001
+  passive:
+    equity:
+      - name: Eigenkapital
+        start: 2000
+    debt-capital:
+      - name: Fremdkapital
+        start: 2001
+income:
+  revenue:
+    - name: Ertrag
+      start: 3000
+  expense:
+    - name: Aufwand
+      start: 3001"#;
+
+        let ledger_definition: LedgerDefinition = serde_yaml::from_str(definition)?;
 
         verify_account(
             &ledger_definition,
@@ -122,6 +147,41 @@ mod test_deserialize_definition {
             "Fremdkapital",
             2001,
         );
+        Ok(())
+    }
+
+    #[test]
+    fn test_serialization_with_income() -> Result<(), serde_yaml::Error> {
+        let expectedStr = r#"balance:
+  active:
+    working-capital: []
+    fixed-assets: []
+  passive:
+    equity: []
+    debt-capital: []
+income:
+  revenue: []
+  expense: []
+"#;
+        let definition = LedgerDefinition {
+            balance: Balance {
+                active: ActiveBalance {
+                    working_capital: vec![],
+                    fixed_assets: vec![],
+                },
+                passive: PassiveBalance {
+                    equity: vec![],
+                    debt_capital: vec![],
+                },
+            },
+            income: Income {
+                revenue: vec![],
+                expense: vec![],
+            },
+        };
+
+        let serialized = serde_yaml::to_string(&definition)?;
+        assert_eq!(serialized, expectedStr);
         Ok(())
     }
 

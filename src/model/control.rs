@@ -1,6 +1,5 @@
-use super::definition::LedgerDefinition;
-use crate::model::amount::Amount;
-use crate::model::definition::Account;
+use super::ledger::{Account, LedgerDefinition};
+use crate::model::ledger::Amount;
 use std::collections::HashMap;
 
 #[derive(Clone, PartialEq, Debug)]
@@ -111,19 +110,23 @@ fn read_accounts(
 }
 
 #[cfg(test)]
-mod test_model_control {
-    use crate::model::control::{
+mod tests {
+    use super::super::ledger::LedgerDefinition;
+    use super::{
         from_ledger_definition, AccountType, ActiveType, BalanceType, IncomeType, LedgerAccount,
         PassiveType,
     };
-    use crate::model::definition::LedgerDefinition;
-    use crate::model::mock::read_default_ledger;
+
     use std::collections::HashMap;
 
     #[test]
     fn test_from_ledger_definition() -> Result<(), serde_yaml::Error> {
-        let ledger_definition: LedgerDefinition = read_default_ledger()?;
-        let ledger_accounts = from_ledger_definition(&ledger_definition);
+        let mock_ledger_definition = MockLedgerDefitition::new();
+        mock_ledger_definition
+            .expect_get_equities()
+            .times(1)
+            .resurn_const(());
+        let ledger_accounts = from_ledger_definition(&mock_ledger_definition);
         assert_eq!(ledger_accounts.len(), 6);
         verify_account(
             &ledger_accounts,

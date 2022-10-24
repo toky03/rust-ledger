@@ -1,5 +1,5 @@
 name: "Buchhaltung 2022"
-bookings:
+transactions:
   - date:
     cred:
     deb:

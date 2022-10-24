@@ -1,12 +1,8 @@
 use std::fs::File;
 
-mod amount;
 mod control;
-mod definition;
-#[cfg(test)]
-mod mock;
-mod transaction;
+mod ledger;
 
-pub fn read_definition(file: File) -> definition::LedgerDefinition {
+pub fn read_definition(file: File) -> ledger::LedgerDefinition {
     serde_yaml::from_reader(file).expect("could not deserialize account definition")
 }

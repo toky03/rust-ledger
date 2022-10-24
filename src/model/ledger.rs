@@ -14,7 +14,7 @@ pub use transaction::TransactionLedger;
 pub struct Ledger {
     name: String,
     definition: LedgerDefinition,
-    transactions: Vec<Transaction>
+    transactions: Vec<Transaction>,
 }
 
 #[cfg(test)]

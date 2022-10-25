@@ -2,6 +2,10 @@ use super::Amount;
 use chrono::NaiveDate;
 use serde::{Deserialize, Serialize};
 
+trait TransactionAccountReader {
+    fn read_accounts() -> Vec<String>;
+}
+
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Transaction {
     description: String,
@@ -9,6 +13,12 @@ pub struct Transaction {
     deb: String,
     cred: String,
     date: NaiveDate,
+}
+
+impl TransactionAccountReader for Transaction {
+    fn read_accounts(&self) -> Vec<String> {
+        vec![self.deb, self.cred]
+    }
 }
 
 #[derive(Serialize, Deserialize, Debug)]

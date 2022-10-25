@@ -27,7 +27,7 @@ enum IncomeType {
 }
 
 #[derive(Clone, PartialEq, Debug)]
-enum AccountType {
+pub enum AccountType {
     Balance(BalanceType),
     Income(IncomeType),
 }

@@ -9,13 +9,15 @@ pub use definition::LedgerDefinition;
 use serde::Deserialize;
 use serde::Serialize;
 pub use transaction::TransactionLedger;
+pub use transaction::Transaction;
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Ledger {
     name: String,
-    definition: LedgerDefinition,
-    transactions: Vec<Transaction>,
+    pub definition: LedgerDefinition,
+    pub transactions: Vec<Transaction>,
 }
+
 
 #[cfg(test)]
 pub use definition::MockLedgerDefinition;

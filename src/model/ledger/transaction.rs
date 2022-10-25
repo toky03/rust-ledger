@@ -3,7 +3,7 @@ use chrono::NaiveDate;
 use serde::{Deserialize, Serialize};
 
 trait TransactionAccountReader {
-    fn read_accounts() -> Vec<String>;
+    fn read_accounts(&self) -> Vec<String>;
 }
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -17,7 +17,7 @@ pub struct Transaction {
 
 impl TransactionAccountReader for Transaction {
     fn read_accounts(&self) -> Vec<String> {
-        vec![self.deb, self.cred]
+        vec![self.deb.clone(), self.cred.clone()]
     }
 }
 

@@ -8,8 +8,8 @@ pub use definition::AccountsReader;
 pub use definition::LedgerDefinition;
 use serde::Deserialize;
 use serde::Serialize;
-pub use transaction::TransactionLedger;
 pub use transaction::Transaction;
+pub use transaction::TransactionLedger;
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Ledger {
@@ -18,8 +18,5 @@ pub struct Ledger {
     pub transactions: Vec<Transaction>,
 }
 
-
 #[cfg(test)]
 pub use definition::MockLedgerDefinition;
-
-use self::transaction::Transaction;

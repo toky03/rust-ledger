@@ -1,9 +1,13 @@
 use super::amount_entity::AmountEntity;
 use chrono::NaiveDate;
+#[cfg(test)]
+use mockall::automock;
 use serde::{Deserialize, Serialize};
 
-trait TransactionAccountReader {
-    fn read_accounts(&self) -> Vec<String>;
+pub trait TransactionAccountReader {
+    fn read_debitor_account(&self) -> &str;
+    fn read_creditor_account(&self) -> &str;
+    fn read_description(&self) -> &str;
 }
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -15,9 +19,16 @@ pub struct TransactionEntity {
     date: NaiveDate,
 }
 
+#[cfg_attr(test, automock)]
 impl TransactionAccountReader for TransactionEntity {
-    fn read_accounts(&self) -> Vec<String> {
-        vec![self.deb.clone(), self.cred.clone()]
+    fn read_creditor_account(&self) -> &str {
+        &self.cred
+    }
+    fn read_debitor_account(&self) -> &str {
+        &self.deb
+    }
+    fn read_description(&self) -> &str {
+        &self.description
     }
 }
 

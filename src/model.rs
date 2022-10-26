@@ -1,16 +1,20 @@
+use crate::model::entity::TransactionAccountReader;
 use std::fs::File;
 
-use self::definition_control::from_ledger_definition;
-
-mod definition_control;
+mod core;
 mod entity;
-mod transaction_control;
+pub mod error;
 
 pub fn read_control(file: File) {
     let ledger: entity::Entity =
         serde_yaml::from_reader(file).expect("could not deserialize entity");
-    let accounts = from_ledger_definition(&ledger.definition);
-    transaction_control::check_transactins(&ledger.transactions, &accounts);
+    let accounts = core::from_ledger_definition(&ledger.definition);
+    let transactions = ledger
+        .transactions
+        .into_iter()
+        .map(|transaction| Box::new(transaction) as Box<dyn TransactionAccountReader>)
+        .collect();
+    core::check_transactions(&transactions, &accounts);
 }
 
 pub fn read_ledger(file: File) -> entity::Entity {

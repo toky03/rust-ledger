@@ -1,8 +1,0 @@
-{
-  "layer_names": ["model", "entity"],
-  "access_rules": [
-    "NoLayerCyclicDependencies",
-    "NoModuleCyclicDependencies",
-    "NoParentAccess"
-  ]
-}

@@ -1,5 +1,5 @@
-use super::entity::AccountEntity;
-use super::entity::AmountEntity;
+use super::super::entity::AccountEntity;
+use super::super::entity::AmountEntity;
 use crate::model::entity::AccountsReader;
 use std::collections::HashMap;
 
@@ -46,6 +46,15 @@ impl LedgerAccount {
             name: String::from(&account.name),
             start: account.start.clone(),
             account_type: account_type.clone(),
+        }
+    }
+
+    #[cfg(test)]
+    pub fn dummy() -> Self {
+        LedgerAccount {
+            name: "Dummy".to_string(),
+            start: AmountEntity::new(10, 0),
+            account_type: AccountType::Income(IncomeType::Expense),
         }
     }
 }
@@ -112,7 +121,7 @@ mod tests {
         PassiveType,
     };
 
-    use super::super::entity::MockLedgerEntity;
+    use super::super::super::entity::MockLedgerEntity;
 
     use super::AccountEntity;
     use std::collections::HashMap;

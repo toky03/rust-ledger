@@ -6,6 +6,8 @@ pub use amount_entity::AmountEntity;
 pub use ledger_entity::AccountEntity;
 pub use ledger_entity::AccountsReader;
 pub use ledger_entity::LedgerEntity;
+pub use transaction_entity::TransactionAccountReader;
+
 use serde::Deserialize;
 use serde::Serialize;
 pub use transaction_entity::TransactionEntity;
@@ -19,3 +21,5 @@ pub struct Entity {
 
 #[cfg(test)]
 pub use ledger_entity::MockLedgerEntity;
+#[cfg(test)]
+pub use transaction_entity::MockTransactionEntity;

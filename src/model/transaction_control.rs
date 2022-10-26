@@ -1,23 +1,20 @@
+use crate::model::definition_control::{AccountType, LedgerAccount};
+use crate::model::entity::{AmountEntity, LedgerEntity, TransactionEntity};
 use std::collections::HashMap;
-
-use super::{
-    definition_control::{AccountType, LedgerAccount},
-    ledger::{Amount, LedgerDefinition, Transaction},
-};
 
 struct CalculatedAccount {
     name: String,
-    current_ammount: Amount,
+    current_ammount: AmountEntity,
     account_type: AccountType,
 }
 
 struct TransactionResult {
     accounts: HashMap<String, CalculatedAccount>,
-    ledger_definition: LedgerDefinition,
+    ledger_definition: LedgerEntity,
 }
 
 pub fn check_transactins(
-    transactions: &Vec<Transaction>,
+    transactions: &Vec<TransactionEntity>,
     accounts: &HashMap<String, LedgerAccount>,
 ) {
 }

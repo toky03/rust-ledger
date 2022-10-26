@@ -1,5 +1,6 @@
-use super::ledger::{Account, AccountsReader};
-use crate::model::ledger::Amount;
+use super::entity::AccountEntity;
+use super::entity::AmountEntity;
+use crate::model::entity::AccountsReader;
 use std::collections::HashMap;
 
 #[derive(Clone, PartialEq, Debug)]
@@ -35,12 +36,12 @@ pub enum AccountType {
 #[derive(Clone, PartialEq, Debug)]
 pub struct LedgerAccount {
     name: String,
-    start: Amount,
+    start: AmountEntity,
     account_type: AccountType,
 }
 
 impl LedgerAccount {
-    fn from(account: &Account, account_type: &AccountType) -> Self {
+    fn from(account: &AccountEntity, account_type: &AccountType) -> Self {
         LedgerAccount {
             name: String::from(&account.name),
             start: account.start.clone(),
@@ -93,7 +94,10 @@ pub fn from_ledger_definition(
         .collect()
 }
 
-fn read_accounts(raw_accounts: Vec<Account>, account_type: AccountType) -> Vec<LedgerAccount> {
+fn read_accounts(
+    raw_accounts: Vec<AccountEntity>,
+    account_type: AccountType,
+) -> Vec<LedgerAccount> {
     raw_accounts
         .iter()
         .map(|acc| LedgerAccount::from(acc, &account_type))
@@ -108,19 +112,20 @@ mod tests {
         PassiveType,
     };
 
-    use super::super::ledger::{Account, MockLedgerDefinition};
+    use super::super::entity::MockLedgerEntity;
 
+    use super::AccountEntity;
     use std::collections::HashMap;
 
     #[test]
     fn test_from_ledger_definition() -> Result<(), serde_yaml::Error> {
-        let mut mock_ledger_definition = MockLedgerDefinition::new();
-        let kasse = Account::new("Kasse", 10);
-        let maschine = Account::new("Maschinen", 1000);
-        let eigenkapital = Account::new("Eigenkapital", 1000);
-        let fremdkapital = Account::new("Fremdkapital", 1000);
-        let ertrag = Account::new("Ertrag", 1000);
-        let aufwand = Account::new("Aufwand", 1000);
+        let mut mock_ledger_definition = MockLedgerEntity::new();
+        let kasse = AccountEntity::new("Kasse", 10);
+        let maschine = AccountEntity::new("Maschinen", 1000);
+        let eigenkapital = AccountEntity::new("Eigenkapital", 1000);
+        let fremdkapital = AccountEntity::new("Fremdkapital", 1000);
+        let ertrag = AccountEntity::new("Ertrag", 1000);
+        let aufwand = AccountEntity::new("Aufwand", 1000);
 
         mock_ledger_definition
             .expect_get_equities()

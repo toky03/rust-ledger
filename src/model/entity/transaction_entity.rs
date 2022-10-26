@@ -1,4 +1,4 @@
-use super::Amount;
+use super::amount_entity::AmountEntity;
 use chrono::NaiveDate;
 use serde::{Deserialize, Serialize};
 
@@ -7,34 +7,29 @@ trait TransactionAccountReader {
 }
 
 #[derive(Serialize, Deserialize, Debug)]
-pub struct Transaction {
+pub struct TransactionEntity {
     description: String,
-    amount: Amount,
+    amount: AmountEntity,
     deb: String,
     cred: String,
     date: NaiveDate,
 }
 
-impl TransactionAccountReader for Transaction {
+impl TransactionAccountReader for TransactionEntity {
     fn read_accounts(&self) -> Vec<String> {
         vec![self.deb.clone(), self.cred.clone()]
     }
 }
 
-#[derive(Serialize, Deserialize, Debug)]
-pub struct TransactionLedger {
-    pub transactions: Vec<Transaction>,
-}
-
-impl Transaction {
+impl TransactionEntity {
     pub fn new(
         description: String,
-        amount: Amount,
+        amount: AmountEntity,
         deb: String,
         cred: String,
         date: NaiveDate,
     ) -> Self {
-        Transaction {
+        TransactionEntity {
             description,
             amount,
             deb,
@@ -46,9 +41,15 @@ impl Transaction {
 
 #[cfg(test)]
 mod tests {
-    use crate::model::ledger::transaction::Transaction;
-    use crate::model::ledger::{Amount, TransactionLedger};
+    use crate::model::entity::transaction_entity::TransactionEntity;
+    use crate::model::entity::AmountEntity;
     use chrono::NaiveDate;
+    use serde::{Deserialize, Serialize};
+
+    #[derive(Serialize, Deserialize, Debug)]
+    struct TransactionsWrapper {
+        transactions: Vec<TransactionEntity>,
+    }
 
     #[test]
     fn test_deserialization() -> Result<(), serde_yaml::Error> {
@@ -60,7 +61,7 @@ transactions:
     amount: 100.0
     description: Abschreibungen von Maschinen"#;
 
-        let ledger_transactions: TransactionLedger = serde_yaml::from_str(definition)?;
+        let ledger_transactions: TransactionsWrapper = serde_yaml::from_str(definition)?;
 
         assert_eq!(ledger_transactions.transactions.len(), 1);
         Ok(())
@@ -76,10 +77,10 @@ transactions:
   date: 2022-01-10
 "#;
 
-        let ledger_transactions = TransactionLedger {
-            transactions: vec![Transaction::new(
+        let ledger_transactions = TransactionsWrapper {
+            transactions: vec![TransactionEntity::new(
                 String::from("Kauf von Maschinen aus Kasse"),
-                Amount::new(20, 22),
+                AmountEntity::new(20, 22),
                 String::from("Kasse"),
                 String::from("Maschinen"),
                 NaiveDate::from_ymd(2022, 1, 10),

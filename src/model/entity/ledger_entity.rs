@@ -1,18 +1,18 @@
-use crate::model::ledger::amount::Amount;
+use super::amount_entity::AmountEntity;
 #[cfg(test)]
 use mockall::automock;
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, PartialEq, Debug, Clone)]
-pub struct LedgerDefinition {
+pub struct LedgerEntity {
     balance: Balance,
     income: Income,
 }
 
 #[derive(Serialize, Deserialize, PartialEq, Debug, Clone)]
 struct Income {
-    revenue: Vec<Account>,
-    expense: Vec<Account>,
+    revenue: Vec<AccountEntity>,
+    expense: Vec<AccountEntity>,
 }
 
 #[derive(Serialize, Deserialize, PartialEq, Debug, Clone)]
@@ -24,46 +24,45 @@ struct Balance {
 #[derive(Serialize, Deserialize, PartialEq, Debug, Clone)]
 struct ActiveBalance {
     #[serde(rename = "working-capital")]
-    working_capital: Vec<Account>,
+    working_capital: Vec<AccountEntity>,
     #[serde(rename = "fixed-assets")]
-    fixed_assets: Vec<Account>,
+    fixed_assets: Vec<AccountEntity>,
 }
 
 #[derive(Serialize, Deserialize, PartialEq, Debug, Clone)]
 struct PassiveBalance {
-    equity: Vec<Account>,
+    equity: Vec<AccountEntity>,
     #[serde(rename = "debt-capital")]
-    debt_capital: Vec<Account>,
+    debt_capital: Vec<AccountEntity>,
 }
 
 #[derive(Serialize, Deserialize, PartialEq, Debug, Clone)]
-pub struct Account {
+pub struct AccountEntity {
     pub name: String,
-    pub start: Amount,
+    pub start: AmountEntity,
 }
 
 #[cfg(test)]
-impl Account {
+impl AccountEntity {
     pub fn new(name: &str, start: u128) -> Self {
-        Account {
+        AccountEntity {
             name: String::from(name),
-            start: Amount::new(start, 0),
+            start: AmountEntity::new(start, 0),
         }
     }
 }
-
 pub trait AccountsReader {
-    fn get_equities(&self) -> Vec<Account>;
-    fn get_debt_capital(&self) -> Vec<Account>;
-    fn get_fixed_assets(&self) -> Vec<Account>;
-    fn get_working_capital(&self) -> Vec<Account>;
-    fn get_revenue(&self) -> Vec<Account>;
-    fn get_expenses(&self) -> Vec<Account>;
+    fn get_equities(&self) -> Vec<AccountEntity>;
+    fn get_debt_capital(&self) -> Vec<AccountEntity>;
+    fn get_fixed_assets(&self) -> Vec<AccountEntity>;
+    fn get_working_capital(&self) -> Vec<AccountEntity>;
+    fn get_revenue(&self) -> Vec<AccountEntity>;
+    fn get_expenses(&self) -> Vec<AccountEntity>;
 }
 
 #[cfg_attr(test, automock)]
-impl AccountsReader for LedgerDefinition {
-    fn get_equities<'a>(&'a self) -> Vec<Account> {
+impl AccountsReader for LedgerEntity {
+    fn get_equities(&self) -> Vec<AccountEntity> {
         self.balance
             .passive
             .equity
@@ -71,7 +70,7 @@ impl AccountsReader for LedgerDefinition {
             .map(|e| e.clone())
             .collect()
     }
-    fn get_debt_capital<'a>(&'a self) -> Vec<Account> {
+    fn get_debt_capital(&self) -> Vec<AccountEntity> {
         self.balance
             .passive
             .debt_capital
@@ -79,7 +78,7 @@ impl AccountsReader for LedgerDefinition {
             .map(|e| e.clone())
             .collect()
     }
-    fn get_fixed_assets<'a>(&'a self) -> Vec<Account> {
+    fn get_fixed_assets(&self) -> Vec<AccountEntity> {
         self.balance
             .active
             .fixed_assets
@@ -87,7 +86,7 @@ impl AccountsReader for LedgerDefinition {
             .map(|e| e.clone())
             .collect()
     }
-    fn get_working_capital<'a>(&'a self) -> Vec<Account> {
+    fn get_working_capital(&self) -> Vec<AccountEntity> {
         self.balance
             .active
             .working_capital
@@ -95,18 +94,19 @@ impl AccountsReader for LedgerDefinition {
             .map(|e| e.clone())
             .collect()
     }
-    fn get_revenue<'a>(&'a self) -> Vec<Account> {
+    fn get_revenue(&self) -> Vec<AccountEntity> {
         self.income.revenue.iter().map(|e| e.clone()).collect()
     }
-    fn get_expenses<'a>(&'a self) -> Vec<Account> {
+    fn get_expenses(&self) -> Vec<AccountEntity> {
         self.income.expense.iter().map(|e| e.clone()).collect()
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use super::{Account, AccountsReader, Amount, LedgerDefinition};
-    use crate::model::ledger::definition::{ActiveBalance, Balance, Income, PassiveBalance};
+    use super::super::amount_entity::AmountEntity;
+    use super::{AccountEntity, AccountsReader, LedgerEntity};
+    use super::{ActiveBalance, Balance, Income, PassiveBalance};
 
     #[test]
     fn test_with_getter() -> Result<(), serde_yaml::Error> {
@@ -134,7 +134,7 @@ income:
     - name: Aufwand
       start: 3001"#;
 
-        let ledger_definition: LedgerDefinition = serde_yaml::from_str(definition)?;
+        let ledger_definition: LedgerEntity = serde_yaml::from_str(definition)?;
 
         verify_account(ledger_definition.get_expenses(), "Aufwand", 3001);
         verify_account(ledger_definition.get_revenue(), "Ertrag", 3000);
@@ -158,7 +158,7 @@ income:
   revenue: []
   expense: []
 "#;
-        let definition = LedgerDefinition {
+        let definition = LedgerEntity {
             balance: Balance {
                 active: ActiveBalance {
                     working_capital: vec![],
@@ -180,14 +180,14 @@ income:
         Ok(())
     }
 
-    fn verify_account(accounts: Vec<Account>, name: &str, start: u128) -> () {
+    fn verify_account(accounts: Vec<AccountEntity>, name: &str, start: u128) -> () {
         assert_eq!(accounts.len(), 1);
         let account = accounts.first().expect("first account not found");
         assert_eq!(
             account,
-            &Account {
+            &AccountEntity {
                 name: name.to_string(),
-                start: Amount::new(start, 0),
+                start: AmountEntity::new(start, 0),
             }
         )
     }

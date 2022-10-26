@@ -2,21 +2,21 @@ use serde::de::Visitor;
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 
 #[derive(PartialEq, Debug, Clone)]
-pub struct Amount {
+pub struct AmountEntity {
     decimal_digits: u128,
     dividend_digits: u32,
 }
 
-impl Amount {
+impl AmountEntity {
     pub fn new(decimal_digits: u128, dividend_digits: u32) -> Self {
-        Amount {
+        AmountEntity {
             decimal_digits,
             dividend_digits,
         }
     }
 }
 
-impl Serialize for Amount {
+impl Serialize for AmountEntity {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
         S: Serializer,
@@ -30,7 +30,7 @@ impl Serialize for Amount {
 struct AmountVisitor;
 
 impl<'de> Visitor<'de> for AmountVisitor {
-    type Value = Amount;
+    type Value = AmountEntity;
 
     fn expecting(&self, formatter: &mut std::fmt::Formatter) -> std::fmt::Result {
         formatter.write_str("an amount with decimal places like 10.00")
@@ -50,11 +50,11 @@ impl<'de> Visitor<'de> for AmountVisitor {
         } else {
             0
         };
-        Ok(Amount::new(pre_decimal, decimal_places))
+        Ok(AmountEntity::new(pre_decimal, decimal_places))
     }
 }
 
-impl<'de> Deserialize<'de> for Amount {
+impl<'de> Deserialize<'de> for AmountEntity {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where
         D: Deserializer<'de>,
@@ -68,36 +68,37 @@ mod tests {
 
     #[test]
     fn test_wrong_input() -> Result<(), serde_yaml::Error> {
-        let amount: Result<super::Amount, serde_yaml::Error> = serde_yaml::from_str(r#"10,0"#);
+        let amount: Result<super::AmountEntity, serde_yaml::Error> =
+            serde_yaml::from_str(r#"10,0"#);
         assert!(amount.is_err());
         Ok(())
     }
 
     #[test]
     fn test_amount_witout_decimal_digits() -> Result<(), serde_yaml::Error> {
-        let amount: super::Amount = serde_yaml::from_str(r#"10"#)?;
-        assert_eq!(amount, super::Amount::new(10, 0));
+        let amount: super::AmountEntity = serde_yaml::from_str(r#"10"#)?;
+        assert_eq!(amount, super::AmountEntity::new(10, 0));
         Ok(())
     }
 
     #[test]
     fn test_amount_with_decimal_digits() -> Result<(), serde_yaml::Error> {
-        let amount: super::Amount = serde_yaml::from_str(r#"10.0"#)?;
-        assert_eq!(amount, super::Amount::new(10, 0));
+        let amount: super::AmountEntity = serde_yaml::from_str(r#"10.0"#)?;
+        assert_eq!(amount, super::AmountEntity::new(10, 0));
         Ok(())
     }
 
     #[test]
     fn test_amount_with_decimal_digits_non_zero() -> Result<(), serde_yaml::Error> {
-        let amount: super::Amount = serde_yaml::from_str(r#"999.990"#)?;
-        assert_eq!(amount, super::Amount::new(999, 99));
+        let amount: super::AmountEntity = serde_yaml::from_str(r#"999.990"#)?;
+        assert_eq!(amount, super::AmountEntity::new(999, 99));
         Ok(())
     }
 
     #[test]
     fn test_amount_with_decimal_digits_leading_zero() -> Result<(), serde_yaml::Error> {
-        let amount: super::Amount = serde_yaml::from_str(r#"011.0"#)?;
-        assert_eq!(amount, super::Amount::new(11, 0));
+        let amount: super::AmountEntity = serde_yaml::from_str(r#"011.0"#)?;
+        assert_eq!(amount, super::AmountEntity::new(11, 0));
         Ok(())
     }
 }
@@ -106,14 +107,14 @@ mod tests {
 mod test_serialize_amount {
     #[test]
     fn test_amount_witout_decimal_digits() -> Result<(), serde_yaml::Error> {
-        let amount: String = serde_yaml::to_string(&super::Amount::new(10, 0))?;
+        let amount: String = serde_yaml::to_string(&super::AmountEntity::new(10, 0))?;
         assert_eq!(amount, "10.0\n");
         Ok(())
     }
 
     #[test]
     fn test_amount_with_decimal_digits_non_zero() -> Result<(), serde_yaml::Error> {
-        let amount: String = serde_yaml::to_string(&super::Amount::new(999, 99))?;
+        let amount: String = serde_yaml::to_string(&super::AmountEntity::new(999, 99))?;
         assert_eq!(amount, "999.99\n");
         Ok(())
     }
